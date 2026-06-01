@@ -5,8 +5,6 @@ Car car;
 Dashboard dashboard("Wifi Name");
 
 void setup() {
-  Serial.begin();
-
   car.init();
   dashboard.init();
 
@@ -41,9 +39,6 @@ void setup() {
     .onRelease([]() {
       car.stop();
     });
-
 }
 
-void loop() {
-  delay(1000);
-}
+void loop() {}
