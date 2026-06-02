@@ -94,7 +94,7 @@ public:
         rightInput1(rightInput1),
         rightInput2(rightInput2) {};
 
-  Car(): Car(0, 1, 2, 3, 8, 9) {};
+  Car(): Car(D0, D1, D2, D3, D9, D10) {};
 
   void init() {
     pinMode(leftEnable, OUTPUT);
