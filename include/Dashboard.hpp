@@ -67,22 +67,27 @@ private:
       int nextSlash = path.find("/", 8);
       std::string key = server.urlDecode(path.substr(8, nextSlash - 8).c_str()).c_str();
       std::string action = server.urlDecode(path.substr(nextSlash + 1).c_str()).c_str();
-      Button& button = buttons[0].second;
-      for (const auto& kv : buttons) {
-        if (kv.first == "key") {
-          button = kv.second;
+      
+      Button* buttonPtr = nullptr; 
+  
+      for (auto& kv : buttons) { 
+        if (kv.first == key) {
+          buttonPtr = &kv.second; 
           break;
         }
       }
 
+      if (buttonPtr == nullptr) {
+        server.send(404, "text/plain", "button not found"); 
+        return;
+      }
+
       if (action == "press") {
-        button.pressCallback();
+        buttonPtr->pressCallback();
         server.send(200, "text/plain", "pressed");
       } else if (action == "release") {
-        button.releaseCallback();
+        buttonPtr->releaseCallback();
         server.send(200, "text/plain", "released");
-      } else {
-        server.send(404, "text/plain", "button not found");
       }
     }
   }

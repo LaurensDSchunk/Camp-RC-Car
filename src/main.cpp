@@ -5,6 +5,7 @@ Car car;
 Dashboard dashboard("Wifi Name");
 
 void setup() {
+  Serial.begin(115200);
   car.init();
   dashboard.init();
 

@@ -22,25 +22,25 @@ private:
   void leftWheelForward() {
     digitalWrite(leftInput1, HIGH);
     digitalWrite(leftInput2, LOW);
-    analogWrite(leftEnable, 100);
+    analogWrite(leftEnable, 255);
   }
 
   void leftWheelBackward() {
     digitalWrite(leftInput1, LOW);
     digitalWrite(leftInput2, HIGH);
-    analogWrite(leftEnable, 100);
+    analogWrite(leftEnable, 255);
   }
 
   void rightWheelForward() {
     digitalWrite(rightInput1, HIGH);
     digitalWrite(rightInput2, LOW);
-    analogWrite(rightEnable, 100);
+    analogWrite(rightEnable, 255);
   }
 
   void rightWheelBackward() {
     digitalWrite(rightInput1, LOW);
     digitalWrite(rightInput2, HIGH);
-    analogWrite(rightEnable, 100);
+    analogWrite(rightEnable, 255);
   }
 
   void stopWheels() {
@@ -65,12 +65,12 @@ private:
             car.rightWheelBackward();
             break;
           case Command::LEFT:
-            car.leftWheelBackward();
-            car.rightWheelForward();
-            break;
-          case Command::RIGHT:
             car.leftWheelForward();
             car.rightWheelBackward();
+            break;
+          case Command::RIGHT:
+            car.leftWheelBackward();
+            car.rightWheelForward();
             break;
           case Command::STOP:
             car.stopWheels();
@@ -94,7 +94,7 @@ public:
         rightInput1(rightInput1),
         rightInput2(rightInput2) {};
 
-  Car(): Car(D0, D1, D2, D3, D9, D10) {};
+  Car(): Car(4, 5, 6, 7, 11, 12) {};
 
   void init() {
     pinMode(leftEnable, OUTPUT);
