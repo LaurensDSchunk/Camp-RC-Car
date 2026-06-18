@@ -5,7 +5,6 @@ Car car;
 Dashboard dashboard("Wifi Name");
 
 void setup() {
-  Serial.begin(115200);
   car.init();
   dashboard.init();
 
@@ -15,7 +14,8 @@ void setup() {
     })
     .onRelease([]() {
       car.stop();
-    });
+    })
+    .withKeybind("KeyW");
 
   dashboard.addButton("Reverse")
     .onPress([]() {
@@ -23,7 +23,8 @@ void setup() {
     })
     .onRelease([]() {
       car.stop();
-    });
+    })
+    .withKeybind("KeyS");;
 
   dashboard.addButton("Turn Left")
     .onPress([]() {
@@ -31,7 +32,8 @@ void setup() {
     })
     .onRelease([]() {
       car.stop();
-    });
+    })
+    .withKeybind("KeyA");;
 
   dashboard.addButton("Turn Right")
     .onPress([]() {
@@ -39,7 +41,8 @@ void setup() {
     })
     .onRelease([]() {
       car.stop();
-    });
+    })
+    .withKeybind("KeyD");;
 }
 
 void loop() {}

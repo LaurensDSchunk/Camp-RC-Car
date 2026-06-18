@@ -19,6 +19,8 @@ private:
 
   std::function<void()> pressCallback;
   std::function<void()> releaseCallback;
+
+  std::string keybind = "";
 public:
   Button(): pressCallback([](){}), releaseCallback([](){}) {
   }
@@ -30,6 +32,11 @@ public:
 
   Button& onRelease(std::function<void()> callback) {
     this->releaseCallback = callback;
+    return *this;
+  }
+
+  Button& withKeybind(std::string keyCode) {
+    this->keybind = keyCode;
     return *this;
   }
 };
@@ -54,10 +61,23 @@ private:
 
   void handleRootRequest() {
     std::string result = INDEX_HTML;
+
+    std::string keyDownListener = "window.addEventListener('keydown', (e) => {\n";
+    std::string keyUpListener = "window.addEventListener('keyup', (e) => {\n";
+
     for (const auto& kv : buttons) {
       std::string newButton = "<button onmousedown=\"fetch(encodeURI('button/" + kv.first + "/press'))\" onmouseup=\"fetch(encodeURI('button/" + kv.first + "/release'))\">" + kv.first + "</button>";
       result += newButton;
+
+      keyDownListener += "if (e.code == '" + kv.second.keybind + "') {\nfetch(encodeURI('button/" + kv.first + "/press'))\n}\n";
+      keyUpListener += "if (e.code == '" + kv.second.keybind + "') {\nfetch(encodeURI('button/" + kv.first + "/release'))\n}\n";
     }
+    
+    result += "<script>\n";
+    result += keyDownListener + "\n})\n";
+    result += keyUpListener + "\n})\n";
+    result += "</script>";
+
     server.send(200, "text/html", result.c_str());
   };
 
