@@ -62,8 +62,8 @@ private:
   void handleRootRequest() {
     std::string result = INDEX_HTML;
 
-    std::string keyDownListener = "window.addEventListener('keydown', (e) => {\ne.preventDefault()\n";
-    std::string keyUpListener = "window.addEventListener('keyup', (e) => {\ne.preventDefault()\n";
+    std::string keyDownListener = "window.addEventListener('keydown', (e) => {\ne.preventDefault()\nif (e.repeat) return;\n";
+    std::string keyUpListener = "window.addEventListener('keyup', (e) => {\ne.preventDefault()\nif (e.repeat) return;\n";
 
     for (const auto& kv : buttons) {
       std::string newButton = "<button onmousedown=\"fetch(encodeURI('button/" + kv.first + "/press'))\" onmouseup=\"fetch(encodeURI('button/" + kv.first + "/release'))\">" + kv.first + "</button>";

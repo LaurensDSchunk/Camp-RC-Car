@@ -36,7 +36,7 @@ private:
       int left = 0;
       int right = 0;
       {
-        std::lock_guard guard(car.mutex);
+        std::lock_guard<std::mutex> guard(car.mutex);
         switch (car.throttle) {
           case Throttle::FORWARD:
             left = 255;
@@ -132,12 +132,12 @@ public:
   }
 
   void setThrottle(Throttle throttle) {
-    std::lock_guard guard(mutex);
+    std::lock_guard<std::mutex> guard(mutex);
     this->throttle = throttle;
   }
 
   void setTurn(Turn turn) {
-    std::lock_guard guard(mutex);
+    std::lock_guard<std::mutex> guard(mutex);
     this->turn = turn;
   }
 };
