@@ -10,37 +10,37 @@ void setup() {
 
   dashboard.addButton("Forward")
     .onPress([]() {
-      car.driveForward();
+      car.setThrottle(Throttle::FORWARD);
     })
     .onRelease([]() {
-      car.stop();
+      car.setThrottle(Throttle::NONE);
     })
     .withKeybind("KeyW");
 
   dashboard.addButton("Reverse")
     .onPress([]() {
-      car.driveBackward();
+      car.setThrottle(Throttle::BACKWARD);
     })
     .onRelease([]() {
-      car.stop();
+      car.setThrottle(Throttle::NONE);
     })
     .withKeybind("KeyS");;
 
   dashboard.addButton("Turn Left")
     .onPress([]() {
-      car.turnLeft();
+      car.setTurn(Turn::LEFT);
     })
     .onRelease([]() {
-      car.stop();
+      car.setTurn(Turn::NONE);
     })
     .withKeybind("KeyA");;
 
   dashboard.addButton("Turn Right")
     .onPress([]() {
-      car.turnRight();
+      car.setTurn(Turn::RIGHT);
     })
     .onRelease([]() {
-      car.stop();
+      car.setTurn(Turn::NONE);
     })
     .withKeybind("KeyD");;
 }

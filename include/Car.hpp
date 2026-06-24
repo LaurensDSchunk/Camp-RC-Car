@@ -1,81 +1,100 @@
-#ifndef CAR_HEADER_GUARD
-#define CAR_HEADER_GUARD
+#ifndef CAR_HPP_HEADER_GUARD
+#define CAR_HPP_HEADER_GUARD
 
-#include <Arduino.h>
+#include "Arduino.h"
+#include "mutex"
+
+enum class Throttle {
+  FORWARD,
+  NONE,
+  BACKWARD
+};
+  
+enum class Turn {
+  LEFT,
+  NONE,
+  RIGHT
+};
 
 class Car {
 private:
-  enum Command {
-    STOP,
-    FORWARD,
-    BACKWARD,
-    LEFT,
-    RIGHT
-  };
-
   int leftEnable, rightEnable;
   int leftInput1, leftInput2, rightInput1, rightInput2;
 
   TaskHandle_t periodicTaskHandle;
-  QueueHandle_t commandQueue;
+  std::mutex mutex;
 
-  void leftWheelForward() {
-    digitalWrite(leftInput1, HIGH);
-    digitalWrite(leftInput2, LOW);
-    analogWrite(leftEnable, 255);
-  }
+  Throttle throttle = Throttle::NONE;
+  Turn turn = Turn::NONE;
 
-  void leftWheelBackward() {
-    digitalWrite(leftInput1, LOW);
-    digitalWrite(leftInput2, HIGH);
-    analogWrite(leftEnable, 255);
-  }
-
-  void rightWheelForward() {
-    digitalWrite(rightInput1, HIGH);
-    digitalWrite(rightInput2, LOW);
-    analogWrite(rightEnable, 255);
-  }
-
-  void rightWheelBackward() {
-    digitalWrite(rightInput1, LOW);
-    digitalWrite(rightInput2, HIGH);
-    analogWrite(rightEnable, 255);
-  }
-
-  void stopWheels() {
-    analogWrite(leftEnable, 0);
-    analogWrite(rightEnable, 0);
-  }
-  
   static void periodicTask(void* voidObj) {
     Car& car = *static_cast<Car*>(voidObj);
-    Command recvCommand;
 
     while (true) {
       delay(10);
-      if (xQueueReceive(car.commandQueue, &recvCommand, portMAX_DELAY) == pdPASS) {
-        switch (recvCommand) {
-          case Command::FORWARD:
-            car.leftWheelForward();
-            car.rightWheelForward();
+      
+      int left = 0;
+      int right = 0;
+      {
+        std::lock_guard guard(car.mutex);
+        switch (car.throttle) {
+          case Throttle::FORWARD:
+            left = 255;
+            right = 255;
             break;
-          case Command::BACKWARD:
-            car.leftWheelBackward();
-            car.rightWheelBackward();
+          case Throttle::BACKWARD:
+            left = -255;
+            right = -255;
             break;
-          case Command::LEFT:
-            car.leftWheelForward();
-            car.rightWheelBackward();
-            break;
-          case Command::RIGHT:
-            car.leftWheelBackward();
-            car.rightWheelForward();
-            break;
-          case Command::STOP:
-            car.stopWheels();
+          case Throttle::NONE:
+            left = 0;
+            right = 0;
             break;
         }
+
+        switch (car.turn) {
+          case Turn::LEFT:
+            left += 255;
+            right -= 255;
+            break;
+          case Turn::RIGHT:
+            left -= 255;
+            right += 255;
+            break;
+          case Turn::NONE:
+            break;
+        }
+      }
+
+      // Normalize
+      float scaleFactor = 1;
+      if (abs(left) > 255) {
+        scaleFactor = min(scaleFactor, (255.0f / left));
+      }
+      if (abs(right) > 255) {
+        scaleFactor = min(scaleFactor, (255.0f / right));
+      }
+      left = (int)(left * scaleFactor);
+      right = (int)(right * scaleFactor);
+
+      // Output
+      analogWrite(car.leftEnable, abs(left));
+      analogWrite(car.rightEnable, abs(right));
+
+      if (left > 0) {
+        digitalWrite(car.leftInput1, HIGH);
+        digitalWrite(car.leftInput2, LOW);
+      } else {
+        digitalWrite(car.leftInput1, LOW);
+        digitalWrite(car.leftInput2, HIGH);
+      }
+
+      if (right > 0) {
+        digitalWrite(car.rightInput1, HIGH);
+        digitalWrite(car.rightInput2, LOW);
+      } else {
+        digitalWrite(car.rightInput1, LOW);
+        digitalWrite(car.rightInput2, HIGH);
       }
     }
   }
@@ -104,7 +123,6 @@ public:
     pinMode(rightInput1, OUTPUT);
     pinMode(rightInput2, OUTPUT);
 
-    commandQueue = xQueueCreate(5, sizeof(Command));
     xTaskCreate(periodicTask, 
                 "Car Periodic Task", 
                 10000, 
@@ -113,34 +131,14 @@ public:
                 &periodicTaskHandle);
   }
 
-  void driveForward() {
-    Serial.println("Driving Forward");
-    Command cmd = Command::FORWARD;
-    xQueueSend(commandQueue, &cmd, 0);
+  void setThrottle(Throttle throttle) {
+    std::lock_guard guard(mutex);
+    this->throttle = throttle;
   }
 
-  void driveBackward() {
-    Serial.println("Driving Backward");
-    Command cmd = Command::BACKWARD;
-    xQueueSend(commandQueue, &cmd, 0);
-  }
-
-  void turnLeft() {
-    Serial.println("Turning Left");
-    Command cmd = Command::LEFT;
-    xQueueSend(commandQueue, &cmd, 0);
-  }
-
-  void turnRight() {
-    Serial.println("Turning Right");
-    Command cmd = Command::RIGHT;
-    xQueueSend(commandQueue, &cmd, 0);
-  }
-
-  void stop() {
-    Serial.println("Stopping");
-    Command cmd = Command::STOP;
-    xQueueSend(commandQueue, &cmd, 0);
+  void setTurn(Turn turn) {
+    std::lock_guard guard(mutex);
+    this->turn = turn;
   }
 };
 
